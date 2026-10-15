@@ -274,8 +274,19 @@ class _FoodCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = AppPalette.of(context);
     final text = Theme.of(context).textTheme;
+    final primary = Theme.of(context).colorScheme.primary;
     final total = food.total;
     final grams = food.gramsPerServing * food.servings;
+
+    final brand = food.brand;
+    final hasBrand = brand != null && brand.isNotEmpty;
+    final scanned = food.barcode != null;
+    // Avoid repeating the brand when the name already starts with it.
+    var displayName = food.name;
+    if (hasBrand && food.name.toLowerCase().startsWith(brand.toLowerCase())) {
+      final stripped = food.name.substring(brand.length).trim();
+      if (stripped.isNotEmpty) displayName = stripped;
+    }
 
     return AppCard(
       key: Key('review-${food.name}'),
@@ -286,18 +297,47 @@ class _FoodCard extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Flexible(child: Text(food.name, style: text.titleMedium)),
-                    const SizedBox(width: 8),
-                    Text(
-                      '${total.calories.round()} kcal',
-                      style: text.titleSmall?.copyWith(
-                        color: AppColors.flame,
-                        fontWeight: FontWeight.w800,
+                    if (hasBrand || scanned) ...[
+                      Row(
+                        children: [
+                          if (hasBrand)
+                            Flexible(
+                              child: Text(
+                                brand.toUpperCase(),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: text.labelSmall?.copyWith(
+                                  color: primary,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.6,
+                                ),
+                              ),
+                            ),
+                          if (hasBrand && scanned) const SizedBox(width: 8),
+                          if (scanned) const _ScannedBadge(),
+                        ],
                       ),
+                      const SizedBox(height: 3),
+                    ],
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: [
+                        Flexible(
+                          child: Text(displayName, style: text.titleMedium),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '${total.calories.round()} kcal',
+                          style: text.titleSmall?.copyWith(
+                            color: AppColors.flame,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -391,6 +431,36 @@ class _FoodCard extends StatelessWidget {
 }
 
 /// A soft pill showing one macronutrient's grams and label.
+/// A small pill marking a food that came from a barcode scan.
+class _ScannedBadge extends StatelessWidget {
+  const _ScannedBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+    final brightness = Theme.of(context).brightness;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: AppColors.soft(primary, brightness),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.qr_code_scanner_rounded, size: 13, color: primary),
+          const SizedBox(width: 4),
+          Text(
+            'Scanned',
+            style: Theme.of(context).textTheme.labelSmall
+                ?.copyWith(color: primary, fontWeight: FontWeight.w700),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _MacroPill extends StatelessWidget {
   const _MacroPill({
     required this.label,

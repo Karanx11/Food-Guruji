@@ -11,9 +11,17 @@ class DetectedFood {
     required this.perServing,
     this.confidence,
     this.notes,
+    this.brand,
+    this.barcode,
   });
 
   final String name;
+
+  /// The maker, e.g. "Nutella". Null for an unbranded or cooked item.
+  final String? brand;
+
+  /// The scanned product code, set only when this came from a barcode scan.
+  final String? barcode;
 
   /// Human description of one serving, e.g. "1 bowl" or "2 rotis".
   final String servingLabel;
@@ -50,6 +58,8 @@ class DetectedFood {
     perServing: perServing ?? this.perServing,
     confidence: confidence,
     notes: notes,
+    brand: brand,
+    barcode: barcode,
   );
 
   factory DetectedFood.fromJson(Map<String, Object?> json) {
@@ -76,6 +86,12 @@ class DetectedFood {
       confidence: json['confidence'] == null ? null : toNum(json['confidence']),
       notes: (json['notes'] as String?)?.trim().isNotEmpty == true
           ? (json['notes'] as String).trim()
+          : null,
+      brand: (json['brand'] as String?)?.trim().isNotEmpty == true
+          ? (json['brand'] as String).trim()
+          : null,
+      barcode: (json['barcode'] as String?)?.trim().isNotEmpty == true
+          ? (json['barcode'] as String).trim()
           : null,
     );
   }

@@ -25,10 +25,11 @@ Future<void> _settle(WidgetTester tester, [int frames = 20]) async {
 
 const _cola = DetectedFood(
   name: 'Coca-Cola',
+  brand: 'Coca-Cola',
+  barcode: '5449000000996',
   servingLabel: '330 ml',
   gramsPerServing: 330,
   perServing: Nutrition(calories: 139, carbsG: 35, sugarG: 35),
-  notes: 'Barcode 5449000000996',
 );
 
 List<FoodEntry> _todaysEntries(WidgetTester tester) {
@@ -65,10 +66,12 @@ void main() {
     await tester.tap(find.widgetWithText(FilledButton, 'Look up product'));
     await _settle(tester);
 
-    // The review screen shows the scanned product.
+    // The review screen shows the scanned product with its brand and badge.
     expect(find.byType(ReviewPage), findsOneWidget);
     expect(find.text('Coca-Cola'), findsOneWidget);
     expect(find.text('Scanned product'), findsOneWidget);
+    expect(find.text('COCA-COLA'), findsOneWidget); // brand eyebrow
+    expect(find.text('Scanned'), findsOneWidget); // from-barcode badge
 
     // Log it to the meal.
     await tester.tap(find.textContaining('Add 1 to'));

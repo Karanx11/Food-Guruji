@@ -120,7 +120,8 @@ class OpenFoodFactsLookup implements BarcodeLookup {
       gramsPerServing: grams,
       perServing: nutrition,
       confidence: 1,
-      notes: 'Barcode $code',
+      brand: _brand(product),
+      barcode: code,
     );
   }
 
@@ -129,13 +130,18 @@ class OpenFoodFactsLookup implements BarcodeLookup {
     final name = clean(product['product_name_en']).isNotEmpty
         ? clean(product['product_name_en'])
         : clean(product['product_name']);
-    final brand = clean(product['brands']).split(',').first.trim();
+    final brand = _brand(product) ?? '';
     if (name.isEmpty) return brand.isEmpty ? 'Packaged product' : brand;
     // Prefix the brand unless the name already carries it.
     if (brand.isNotEmpty && !name.toLowerCase().contains(brand.toLowerCase())) {
       return '$brand $name';
     }
     return name;
+  }
+
+  String? _brand(Map<String, Object?> product) {
+    final raw = (product['brands'] as String?)?.split(',').first.trim() ?? '';
+    return raw.isEmpty ? null : raw;
   }
 
   String _servingLabel(Object? servingSize, double grams) {

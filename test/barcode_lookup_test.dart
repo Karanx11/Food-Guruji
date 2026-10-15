@@ -37,12 +37,13 @@ void main() {
 
       expect(food, isNotNull);
       expect(food!.name, 'Coca-Cola');
+      expect(food.brand, 'Coca-Cola');
+      expect(food.barcode, '5449000000996');
       expect(food.servingLabel, '330 ml');
       expect(food.gramsPerServing, 330);
       expect(food.perServing.calories, 139);
       expect(food.perServing.carbsG, 35);
       expect(food.perServing.sugarG, 35);
-      expect(food.notes, contains('5449000000996'));
     });
 
     test('prefixes the brand when the name omits it', () async {
@@ -62,6 +63,7 @@ void main() {
       }).lookup('3017620422003');
 
       expect(food!.name, 'Nutella Hazelnut Spread');
+      expect(food.brand, 'Nutella');
     });
 
     test('falls back to per 100 g and converts sodium to mg', () async {
