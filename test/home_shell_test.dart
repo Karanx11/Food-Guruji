@@ -48,8 +48,9 @@ void main() {
 
     await tester.tap(find.byTooltip('Snap food'));
     await tester.pumpAndSettle();
-    expect(find.text('Snap your food'), findsOneWidget);
+    expect(find.text('Add food'), findsOneWidget);
     expect(find.byKey(const Key('snap-source-Camera')), findsOneWidget);
     expect(find.byKey(const Key('snap-source-Gallery')), findsOneWidget);
+    expect(find.byKey(const Key('snap-source-Scan barcode')), findsOneWidget);
   });
 }

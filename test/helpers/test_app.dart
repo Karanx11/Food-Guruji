@@ -7,6 +7,8 @@ import 'package:food_guruji/core/db/app_database.dart';
 import 'package:food_guruji/features/auth/application/auth_providers.dart';
 import 'package:food_guruji/features/auth/data/auth_repository.dart';
 import 'package:food_guruji/features/auth/domain/account.dart';
+import 'package:food_guruji/features/barcode/application/barcode_providers.dart';
+import 'package:food_guruji/features/barcode/domain/barcode_lookup.dart';
 import 'package:food_guruji/features/capture/application/capture_providers.dart';
 import 'package:food_guruji/features/capture/data/photo_source.dart';
 import 'package:food_guruji/features/capture/domain/food_analyzer.dart';
@@ -89,6 +91,7 @@ Widget testApp({
   PhotoSource? photoSource,
   FoodAnalyzer? foodAnalyzer,
   AuthRepository? authRepository,
+  BarcodeLookup? barcodeLookup,
 }) {
   return ProviderScope(
     overrides: [
@@ -112,6 +115,10 @@ Widget testApp({
         photoSourceProvider.overrideWithValue(photoSource),
       if (foodAnalyzer != null)
         foodAnalyzerProvider.overrideWithValue(foodAnalyzer),
+      // Keep tests off the platform camera and the network.
+      barcodeCameraEnabledProvider.overrideWithValue(false),
+      if (barcodeLookup != null)
+        barcodeLookupProvider.overrideWithValue(barcodeLookup),
     ],
     child: home == null ? const FoodBabaApp() : _TestApp(home: home),
   );

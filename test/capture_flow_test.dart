@@ -31,7 +31,7 @@ Future<void> _settle(WidgetTester tester, [int frames = 20]) async {
 Future<void> _snap(WidgetTester tester, PhotoOrigin origin) async {
   await tester.tap(find.byTooltip('Snap food'));
   await _settle(tester);
-  expect(find.text('Snap your food'), findsOneWidget);
+  expect(find.text('Add food'), findsOneWidget);
   await tester.tap(
     find.byKey(
       Key('snap-source-${origin == PhotoOrigin.camera ? "Camera" : "Gallery"}'),
@@ -182,7 +182,7 @@ void main() {
     // Dismiss the sheet without choosing a source.
     await tester.tapAt(const Offset(200, 60));
     await _settle(tester);
-    expect(find.text('Snap your food'), findsNothing);
+    expect(find.text('Add food'), findsNothing);
     expect(analyzer.calls, 0);
   });
 
