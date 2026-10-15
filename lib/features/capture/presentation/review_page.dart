@@ -21,19 +21,20 @@ import 'edit_food_sheet.dart';
 class ReviewPage extends ConsumerStatefulWidget {
   const ReviewPage({
     super.key,
-    required this.photoBytes,
+    this.photoBytes,
     required this.foods,
     required this.isDemo,
   });
 
-  final Uint8List photoBytes;
+  /// The analysed photo. Null for a barcode scan, which has no photo.
+  final Uint8List? photoBytes;
   final List<DetectedFood> foods;
 
   /// True when the foods came from the demo analyzer, not a real model.
   final bool isDemo;
 
   static Route<bool> route({
-    required Uint8List photoBytes,
+    Uint8List? photoBytes,
     required List<DetectedFood> foods,
     required bool isDemo,
   }) => MaterialPageRoute<bool>(
@@ -118,15 +119,18 @@ class _ReviewPageState extends ConsumerState<ReviewPage> {
           24 + MediaQuery.paddingOf(context).bottom,
         ),
         children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(22),
-            child: Image.memory(
-              widget.photoBytes,
-              height: 180,
-              width: double.infinity,
-              fit: BoxFit.cover,
-            ),
-          ),
+          if (widget.photoBytes != null)
+            ClipRRect(
+              borderRadius: BorderRadius.circular(22),
+              child: Image.memory(
+                widget.photoBytes!,
+                height: 180,
+                width: double.infinity,
+                fit: BoxFit.cover,
+              ),
+            )
+          else
+            const _ScannedHeader(),
           const SizedBox(height: 12),
           if (widget.isDemo) ...[_DemoBanner(), const SizedBox(height: 12)],
           Text(
@@ -185,6 +189,36 @@ class _ReviewPageState extends ConsumerState<ReviewPage> {
                 : 'Add $keptCount to ${_meal.label}',
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Header shown in place of a photo for a barcode scan.
+class _ScannedHeader extends StatelessWidget {
+  const _ScannedHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    final primary = Theme.of(context).colorScheme.primary;
+    return Container(
+      height: 120,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(22),
+        color: Color.alphaBlend(
+          AppColors.soft(primary, Theme.of(context).brightness),
+          AppPalette.of(context).card,
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.qr_code_scanner_rounded, size: 40, color: primary),
+          const SizedBox(height: 8),
+          Text('Scanned product', style: text.titleSmall),
+        ],
       ),
     );
   }
