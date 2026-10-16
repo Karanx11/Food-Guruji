@@ -120,7 +120,8 @@ class OpenFoodFactsLookup implements BarcodeLookup {
       gramsPerServing: grams,
       perServing: nutrition,
       confidence: 1,
-      notes: 'Barcode $code',
+      brand: _brand(product),
+      barcode: code,
     );
   }
 
@@ -129,13 +130,97 @@ class OpenFoodFactsLookup implements BarcodeLookup {
     final name = clean(product['product_name_en']).isNotEmpty
         ? clean(product['product_name_en'])
         : clean(product['product_name']);
-    final brand = clean(product['brands']).split(',').first.trim();
+    final brand = _brand(product) ?? '';
     if (name.isEmpty) return brand.isEmpty ? 'Packaged product' : brand;
     // Prefix the brand unless the name already carries it.
     if (brand.isNotEmpty && !name.toLowerCase().contains(brand.toLowerCase())) {
       return '$brand $name';
     }
     return name;
+  }
+
+  // Legal-entity words that Open Food Facts sometimes tacks onto a brand,
+  // e.g. "Coca-Cola Services SA/NV" or "Amul (GCMMF) Ltd".
+  static const Set<String> _legalWords = {
+    'sa',
+    'nv',
+    'sarl',
+    'srl',
+    'bv',
+    'plc',
+    'ag',
+    'ab',
+    'oy',
+    'as',
+    'kg',
+    'ltd',
+    'ltda',
+    'limited',
+    'inc',
+    'llc',
+    'llp',
+    'gmbh',
+    'spa',
+    'kgaa',
+    'pvt',
+    'private',
+    'co',
+    'company',
+    'corp',
+    'corporation',
+    'services',
+    'service',
+    'group',
+    'groupe',
+    'holdings',
+    'holding',
+    'industries',
+    'international',
+    'intl',
+    'foods',
+    'brands',
+  };
+
+  /// The common consumer brand: the first listed brand with any trailing
+  /// corporate/legal words dropped and the words title-cased.
+  String? _brand(Map<String, Object?> product) {
+    var raw = (product['brands'] as String?)?.split(',').first ?? '';
+    raw = raw.replaceAll(RegExp(r'\(.*?\)'), ' ').trim();
+    if (raw.isEmpty) return null;
+
+    final words = raw
+        .split(RegExp(r'[\s/]+'))
+        .where((w) => w.isNotEmpty)
+        .toList();
+    String bare(String w) =>
+        w.toLowerCase().replaceAll(RegExp('[^a-z0-9]'), '');
+    while (words.length > 1 && _legalWords.contains(bare(words.last))) {
+      words.removeLast();
+    }
+    if (words.length > 1 && words.first.toLowerCase() == 'the') {
+      words.removeAt(0);
+    }
+    if (words.isEmpty) return null;
+    return words.map(_titleCase).join(' ');
+  }
+
+  /// Title-cases a word, keeping short all-caps acronyms (KFC) and hyphenated
+  /// brands (Coca-Cola) intact.
+  String _titleCase(String word) {
+    final letters = word.replaceAll(RegExp('[^A-Za-z0-9]'), '');
+    if (letters.isNotEmpty &&
+        letters.length <= 4 &&
+        letters == letters.toUpperCase()) {
+      return word;
+    }
+    return word
+        .split('-')
+        .map(
+          (part) => part.isEmpty
+              ? part
+              : part[0].toUpperCase() + part.substring(1).toLowerCase(),
+        )
+        .join('-');
   }
 
   String _servingLabel(Object? servingSize, double grams) {
