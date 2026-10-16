@@ -66,6 +66,22 @@ void main() {
       expect(food.brand, 'Nutella');
     });
 
+    test('shortens a legal brand to the common name', () async {
+      Future<String?> brandFor(String brands) async => (await _lookupReturning({
+        'status': 1,
+        'product': {
+          'product_name': 'Soda',
+          'brands': brands,
+          'nutriments': {'energy-kcal_100g': 42},
+        },
+      }).lookup('1'))!.brand;
+
+      expect(await brandFor('COCA-COLA SERVICES SA/NV'), 'Coca-Cola');
+      expect(await brandFor('Amul (GCMMF) Ltd'), 'Amul');
+      expect(await brandFor('The Nestlé Company'), 'Nestlé');
+      expect(await brandFor('KFC'), 'KFC'); // short acronym kept
+    });
+
     test('falls back to per 100 g and converts sodium to mg', () async {
       final food = await _lookupReturning({
         'status': 1,
